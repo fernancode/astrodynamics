@@ -5,7 +5,7 @@ Running
 ```
 plot_orbit(h,e,22.5)
 ```
-where h is angular momentum and e is orbit eccentricity returns a graphic representing that satelling orbit.
+where h is angular momentum,e is orbit eccentricity, and 22.5 degrees inclination returns a graphic representing that satelling orbit.
 
 ![plot_orbit](https://github.com/fernancode/astrodynamics/blob/master/plot_orbit.png)
 
