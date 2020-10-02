@@ -3,7 +3,7 @@ Fundamentals of Astrodynamics equations, plots, and visualizations. Code was mad
 
 Running 
 ```
-plot_orbit(h,e)
+plot_orbit(h,e,22.5)
 ```
 where h is angular momentum and e is orbit eccentricity returns a graphic representing that satelling orbit.
 
