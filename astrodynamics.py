@@ -14,12 +14,15 @@ gc = 6.674e-11 #m^3 / kg s^2
 
 def orbit_eq(angular_momentum, eccentricity, theta, mu=398600):
     """
-    Given angular momentum (h), eccentricity of the orbit (apogee - perigee ) / (apogee + perigee), and the angle, we can get the distance from the planet
+    Given angular momentum (h), eccentricity of the orbit (apogee - perigee ) / (apogee + perigee), and the angle, we get the radial distance from the planet
     """
     r = (angular_momentum**2/mu)/(1+eccentricity*np.cos(theta))
     return r
 
 def plot_orbit(h,e,mu=398600,planet_radius=6371):
+    """
+    Make a three dimensional plot of the orbit trajectory given angular momentum h, eccentricity e, gravitational parameter mu, and planet radius
+    """
     plt.style.use('dark_background')
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -36,7 +39,7 @@ def plot_orbit(h,e,mu=398600,planet_radius=6371):
     plt.show()
 
 
-# Make data
+
 def make_planet(planet_radius,ax):
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
@@ -73,5 +76,3 @@ def equal_axes(x,y,z,ax):
     for xb, yb, zb in zip(Xb, Yb, Zb):
         ax.plot([xb], [yb], [zb], 'w')
     plt.grid()
-
-plot_orbit(80000,.5)
