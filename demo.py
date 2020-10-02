@@ -8,6 +8,4 @@ apogee = astro.orbit_eq(angular_momentum,eccentricity,3.14159)
 print(apogee)
 
 #make a graphic of the orbit
-astro.plot_orbit(angular_momentum,eccentricity)
-astro.plot_orbit()
-
+astro.plot_orbit(angular_momentum,eccentricity,22.5)

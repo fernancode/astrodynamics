@@ -19,9 +19,10 @@ def orbit_eq(angular_momentum, eccentricity, theta, mu=398600):
     r = (angular_momentum**2/mu)/(1+eccentricity*np.cos(theta))
     return r
 
-def plot_orbit(h,e,mu=398600,planet_radius=6371):
+def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     """
-    Make a three dimensional plot of the orbit trajectory given angular momentum h, eccentricity e, gravitational parameter mu, and planet radius
+    Make a three dimensional plot of the orbit trajectory given angular momentum h, eccentricity e, inclination phi in degrees, gravitational parameter mu, and planet radius
+    
     """
     plt.style.use('dark_background')
     fig = plt.figure()
@@ -29,10 +30,10 @@ def plot_orbit(h,e,mu=398600,planet_radius=6371):
 
     #make_planet(planet_radius,ax)
     x,y,z = generate_orbit(h,e,mu)
-    #add a function for RAAD
-    equal_axes(x,y,z,ax)
+    x_i,y_i,z_i = inclination(x,y,z,(-np.pi/180 * phi))
+    equal_axes(x_i,y_i,z_i,ax)
 
-    ax.plot(x,y,z,label = "orbit",color = 'r')
+    ax.plot(x_i,y_i,z_i,label = "orbit",color = 'r')
     make_planet(planet_radius,ax)
     plt.xlabel('kilometers')       
     ax.legend()
@@ -76,3 +77,15 @@ def equal_axes(x,y,z,ax):
     for xb, yb, zb in zip(Xb, Yb, Zb):
         ax.plot([xb], [yb], [zb], 'w')
     plt.grid()
+
+def inclination(x,y,z,phi):
+    x_i = []
+    y_i = []
+    z_i = []
+
+    for a,b,c in zip(x,y,z):
+        x_i.append( a*np.cos(phi) + 0*b + c*np.sin(phi))
+        y_i.append( a*0 + b*1 + c*0)
+        z_i.append( -a*np.sin(phi) + 0*b + c*np.cos(phi))
+    
+    return x_i,y_i,z_i
