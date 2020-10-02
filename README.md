@@ -1,5 +1,5 @@
 # astrodynamics
-Fundamentals of Astrodynamics equations, plots, and visualizations. Code was made from content learned AE412 Space Systems class at O.S.U. and Fundamentals of Astrodynamics textbook.
+Fundamentals of Astrodynamics equations, plots, and visualizations. Code was made from content learned from AE412 Space Systems class at O.S.U. and Fundamentals of Astrodynamics textbook.
 
 Running 
 ```
