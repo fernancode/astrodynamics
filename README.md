@@ -5,8 +5,7 @@ Running plot_orbit(h,e,i)
 ```
 plot_orbit(h,e,22.5)
 ```
-where h is angular momentum, e is orbit eccentricity, and i is 22.5 degrees inclination returns a graphic, representing that satelling orbit. Optional arguments are the gravitational parameter mu and the planet radius for non earth systems. 
-ex:
+where h is angular momentum, e is orbit eccentricity, and i is 22.5 degrees inclination returns a graphic, representing that satelling orbit. Optional arguments are the gravitational parameter mu and the planet radius, which default to 398600 and 6316km for an earth satellite. An example for a mars gravitational parameter and radius would be:
 
 ```
 plot_orbit(h,e,22.5,mu=42830,planet_radius = 3397)
