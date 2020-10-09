@@ -10,6 +10,9 @@ print('1).')
 print('Period is ', T, 'hours.')
 
 e = (apogee - perigee) / (apogee + apogee)
+p = (apogee + perigee)/2 * (1-e)
+h = (p * astro.mu) **.5
+
 v_perigee = ((perigee*(1+e)*astro.mu)**.5)/perigee
 v_apogee =  ((apogee*(1-e)*astro.mu)**.5)/apogee
 
@@ -17,25 +20,21 @@ print('Velocity at perigee is ', v_perigee)
 print('Velocity at apogee is ', v_apogee)
 
 a = (apogee + perigee)  /2
-h = (a*astro.mu*(1-e**2))**.5
+#h = (astro.mu*a*(1-e**2))**.5
 
-thetas = astro.np.linspace(0,astro.np.pi,1000)
-
-gamma=[]
+ 
+thetas = astro.np.linspace(0,2*astro.np.pi,10000)
+gammas=[]
 for theta in thetas:
     r =  h**2 / astro.mu / (1 + e*astro.np.cos(theta))
-    v = h/r
-    print(v)
-    #gamma = astro.np.arctan( (e*astro.np.sin(theta))/(1+ e* astro.np.cos(theta)))
-#    print(gamma * 180 / astro.np.pi)
 
+    sin_gamma = (astro.mu / h * (e*astro.np.sin(theta)))
+    cos_gamma = (astro.mu / h * (1+e*astro.np.cos(theta)))
+    tan_gamma = sin_gamma/cos_gamma
 
-#    r =  h**2 / astro.mu / (1 + e*astro.np.cos(theta))
-#    v = h/r
-#    v_theta = astro.mu/h * (1+e*astro.np.cos(theta))
-#    print(v)
-#    print(v_theta)
-#    print('\n')
+    gamma = (astro.np.arctan(tan_gamma))
+    gammas.append(gamma)
     
-#max_angle = gamma.index(max(gamma))
-#print(thetas[max_angle])
+max_angle = gammas.index(max(gammas))
+print(astro.to_degrees(max(gammas)))
+print(astro.to_degrees(thetas[max_angle]))

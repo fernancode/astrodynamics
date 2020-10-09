@@ -99,3 +99,11 @@ def Period(apogee,perigee,mu=mu):
     a = (apogee+perigee)/2
     T = (2*np.pi) / mu**.5 * ((a))**1.5
     return T
+
+def to_radian(deg):
+    r = deg * np.pi/180
+    return r
+
+def to_degrees(rad):
+    d = rad * 180/np.pi
+    return d
