@@ -89,3 +89,13 @@ def inclination(x,y,z,phi):
         z_i.append( -a*np.sin(phi) + 0*b + c*np.cos(phi))
     
     return x_i,y_i,z_i
+
+def Period(apogee,perigee,mu=mu):
+    '''
+    Given apogee, perigee, orbital parameter, and radius of body, calculate period of orbit in seconds
+    
+    **apogee and perigee are measured from center of earth
+    '''
+    a = (apogee+perigee)/2
+    T = (2*np.pi) / mu**.5 * ((a))**1.5
+    return T
