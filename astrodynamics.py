@@ -107,3 +107,27 @@ def to_radian(deg):
 def to_degrees(rad):
     d = rad * 180/np.pi
     return d
+
+
+def lagrange_f(delta_theta=[], r=[], h=[], mu=mu):
+    f = 1- (r*mu)/h**2 * (1-np.cos(delta_theta))
+    return f
+
+def lagrange_g(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+    g = (r*r0) / h * np.sin(delta_theta)
+    return g
+
+def lagrange_fdot(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+    fdot = mu/h * (1-np.cos(delta_theta))/np.sin(delta_theta) * (mu/h**2 *(1-np.cos(delta_theta)) -1/r0 - 1/r)
+    return fdot
+
+def lagrange_gdot(delta_theta=[], r0=[], h=[], mu=mu):
+    gdot = 1 - (mu*r0)/h**2 * (1-np.cos(delta_theta))
+    return gdot
+
+def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+    f = lagrange_f(delta_theta, r, h)
+    g = lagrange_g(delta_theta, r, r0, h)
+    fdot = lagrange_fdot(delta_theta, r, r0, h)
+    gdot = lagrange_gdot(delta_theta, r0, h)
+    return f,g,fdot,gdot

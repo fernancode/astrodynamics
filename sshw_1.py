@@ -38,3 +38,25 @@ for theta in thetas:
 max_angle = gammas.index(max(gammas))
 print(astro.to_degrees(max(gammas)))
 print(astro.to_degrees(thetas[max_angle]))
+
+
+#problem 3
+r0 = astro.np.array([12300, 8000])
+v0 = astro.np.array([-1.7, 7.0])
+h = astro.np.cross(r0, v0)
+theta = astro.np.arctan(r0[1]/r0[0])
+v_not = astro.np.linalg.norm(v0)
+r_not = astro.np.linalg.norm(r0)
+
+e = (h**2 / astro.mu - r_not) / (r_not*astro.np.cos(theta))
+print(e)
+dtheta = astro.to_radian(73)
+v_r_not = astro.np.dot(r0, v0/r_not)
+
+r = (h**2)/astro.mu * 1/(1 + (h**2 / (astro.mu*r_not)-1)*astro.np.cos(dtheta) - (h*v_r_not)/astro.mu * astro.np.sin(dtheta))
+f,g,fdot,gdot = astro.lagrange(dtheta,r,r_not,h,astro.mu)
+
+r_new = f*r0 + g*v0
+v_new = fdot*r0 + gdot*v0
+print('New radial vector is ', r_new)
+print('New veloity vector is ', v_new)
