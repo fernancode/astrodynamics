@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import root_scalar
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 #find an ode45 python script
@@ -19,6 +20,129 @@ def orbit_eq(angular_momentum, eccentricity, theta, mu=398600):
     r = (angular_momentum**2/mu)/(1+eccentricity*np.cos(theta))
     return r
 
+
+def Period(apogee,perigee,mu=mu):
+    '''
+    Given apogee, perigee, orbital parameter, and radius of body, calculate period of orbit in seconds
+    
+    **apogee and perigee are measured from center of earth
+    '''
+    a = (apogee+perigee)/2
+    T = (2*np.pi) / mu**.5 * ((a))**1.5
+    return T
+
+
+def to_radian(deg):
+    r = deg * np.pi/180
+    return r
+
+
+def to_degrees(rad):
+    d = rad * 180/np.pi
+    return d
+
+
+def get_eccentricity(h=[], r0=[], theta=[], mu=mu):
+    e = (h**2 / mu - r0)/ (r0*np.cos(theta))
+    return e
+
+
+def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+    '''
+    Calculate the Lagrange coefficients given change in theta, radius, initial radius, angular momentum, and gravitational constant
+    '''
+    def lagrange_f(delta_theta=[], r=[], h=[], mu=mu):
+        f = 1- (r*mu)/h**2 * (1-np.cos(delta_theta))
+        return f
+
+    def lagrange_g(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+        g = (r*r0) / h * np.sin(delta_theta)
+        return g
+
+    def lagrange_fdot(delta_theta=[], r=[], r0=[], h=[], mu=mu):
+        fdot = mu/h * (1-np.cos(delta_theta))/np.sin(delta_theta) * (mu/h**2 *(1-np.cos(delta_theta)) -1/r0 - 1/r)
+        return fdot
+
+    def lagrange_gdot(delta_theta=[], r0=[], h=[], mu=mu):
+        gdot = 1 - (mu*r0)/h**2 * (1-np.cos(delta_theta))
+        return gdot
+    
+    f = lagrange_f(delta_theta, r, h)
+    g = lagrange_g(delta_theta, r, r0, h)
+    fdot = lagrange_fdot(delta_theta, r, r0, h)
+    gdot = lagrange_gdot(delta_theta, r0, h)
+    return f,g,fdot,gdot
+
+
+def esc_velocity(r=[], mu=mu):
+    v_esc = (2*mu / r)**.5
+    return v_esc
+
+
+def chobotov_approx(r0=[], dt=[], mu=mu):
+    '''
+    Chobotov approximation for the universal variable approach. First guess at x0
+    '''
+    r = np.linalg.norm(r0)
+    x0 = (mu**.5)/np.linalg.norm(r) * dt
+    return x0
+
+
+def stumpf_c(z=[]):
+    c = (np.cosh((-z)**.5) -1) / -z
+    return c
+
+
+def stumpf_s(z=[]):
+    s = (np.sinh((-z)**.5) - (-z)**.5) / ((-z)**.5)**3
+    return np.abs(s)
+
+
+def universal_parameters(r0=[], v0=[], mu=mu):
+    r = np.linalg.norm(r0)
+    v = np.linalg.norm(v0)
+    alpha = 2/r - (v**2)/mu
+    a = 1/alpha
+    return alpha, a
+
+
+def universal_variable(x, r0=[], v0=[], alpha=[], dt=[], mu=mu):
+    r = np.linalg.norm(r0)
+    vr0 = np.dot(r0,v0)/r
+    z = alpha*x**2
+    
+    t1 = r*vr0 /(mu**.5) * x**2 * stumpf_c(z)
+    t2 = (1-alpha*r)*x**3 * stumpf_s(z)
+    t3 = r*x
+    t4 = mu**.5 * dt
+    return (t1+t2+t3 - t4)
+
+
+def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
+    z = alpha*x**2
+    r = np.linalg.norm(r0)
+    #v = np.linalg.norm(v0)
+    z = alpha*x**2
+
+    f = 1 - x**2/r * stumpf_c(z)
+    g = dt - 1/mu**.5 * x**3 * stumpf_s(z)
+    r_new = f*r0 + g*v0
+
+    fdot = mu**.5 / (r*np.linalg.norm(r_new)) * (alpha*x**3 * stumpf_s(z) - x)
+    gdot = 1 - x**2/np.linalg.norm(r_new) * stumpf_c(z)
+    v_new = fdot*r0 + gdot*v0
+    return r_new, v_new
+
+
+
+
+
+
+
+
+
+#TODO: maybe change some of this later.
+#Stuff i may change later
 def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     """
     Make a three dimensional plot of the orbit trajectory given angular momentum h, eccentricity e, inclination phi in degrees, gravitational parameter mu, and planet radius
@@ -38,8 +162,6 @@ def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     plt.xlabel('kilometers')       
     ax.legend()
     plt.show()
-
-
 
 def make_planet(planet_radius,ax):
     u = np.linspace(0, 2 * np.pi, 100)
@@ -89,45 +211,3 @@ def inclination(x,y,z,phi):
         z_i.append( -a*np.sin(phi) + 0*b + c*np.cos(phi))
     
     return x_i,y_i,z_i
-
-def Period(apogee,perigee,mu=mu):
-    '''
-    Given apogee, perigee, orbital parameter, and radius of body, calculate period of orbit in seconds
-    
-    **apogee and perigee are measured from center of earth
-    '''
-    a = (apogee+perigee)/2
-    T = (2*np.pi) / mu**.5 * ((a))**1.5
-    return T
-
-def to_radian(deg):
-    r = deg * np.pi/180
-    return r
-
-def to_degrees(rad):
-    d = rad * 180/np.pi
-    return d
-
-
-def lagrange_f(delta_theta=[], r=[], h=[], mu=mu):
-    f = 1- (r*mu)/h**2 * (1-np.cos(delta_theta))
-    return f
-
-def lagrange_g(delta_theta=[], r=[], r0=[], h=[], mu=mu):
-    g = (r*r0) / h * np.sin(delta_theta)
-    return g
-
-def lagrange_fdot(delta_theta=[], r=[], r0=[], h=[], mu=mu):
-    fdot = mu/h * (1-np.cos(delta_theta))/np.sin(delta_theta) * (mu/h**2 *(1-np.cos(delta_theta)) -1/r0 - 1/r)
-    return fdot
-
-def lagrange_gdot(delta_theta=[], r0=[], h=[], mu=mu):
-    gdot = 1 - (mu*r0)/h**2 * (1-np.cos(delta_theta))
-    return gdot
-
-def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
-    f = lagrange_f(delta_theta, r, h)
-    g = lagrange_g(delta_theta, r, r0, h)
-    fdot = lagrange_fdot(delta_theta, r, r0, h)
-    gdot = lagrange_gdot(delta_theta, r0, h)
-    return f,g,fdot,gdot
