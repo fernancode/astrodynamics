@@ -11,6 +11,9 @@ p = (apogee + perigee)/2 * (1-e)
 h = (p * ad.mu) **.5
 v_perigee = ((perigee*(1+e)*ad.mu)**.5)/perigee
 v_apogee =  ((apogee*(1-e)*ad.mu)**.5)/apogee
+
+#TODO: is there a more streamlined way to get the above stuff?
+#TODO: encapsulate below into a fucntion
 a = (apogee + perigee)  /2 
 thetas = np.linspace(0,2*np.pi,10000)
 gammas=[]
@@ -50,8 +53,9 @@ print('New veloity vector is ', v_new)
 print('\n')
 
 ################################Problem 4#########################################
+
 r0 = np.array([6500,0,0])
-v0 = np.array([0, 1.2 * ad.esc_velocity(6500),0])
+v0 = np.array([0, 1.2 * ad.esc_velocity(r0),0])
 dt = 18 * 60**2 #hours to seconds
 alpha, a, e, h, theta = ad.universal_parameters(r0=r0, v0=v0)
 theta = ad.hyperbolic_anomaly(r0,v0,e,dt)
@@ -71,7 +75,7 @@ v0 = ad.np.array([-2.0, 8.0, 3])
 dt = 20*60
 
 alpha, a, e, h, theta = ad.universal_parameters(r0=r0, v0=v0)
-x = ad.universal_variable(r0=r0, v0=v0, alpha=alpha, dt=dt)
+x = ad.universal_anomaly(r0=r0, v0=v0, alpha=alpha, dt=dt)
 r_new, v_new = ad.universal_lagrange(x, r0, v0, alpha, dt)
 print('Problem 5). ')
 print(r_new)

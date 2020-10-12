@@ -14,15 +14,19 @@ pi = np.pi
 mu = 398600 #km^3/s^2
 gc = 6.674e-11 #m^3 / kg s^2
 
-def orbit_eq(angular_momentum, eccentricity, theta, mu=398600):
+def orbit_eq(h=[], e=[], theta=[], mu=mu):
     """
-    Given angular momentum (h), eccentricity of the orbit (apogee - perigee ) / (apogee + perigee), and the angle, we get the radial distance from the planet
+    Given angular momentum (h), eccentricity, and the angle, we get the radial distance from the planet
     """
-    r = (angular_momentum**2/mu)/(1+eccentricity*np.cos(theta))
+    r = (h**2/mu)/(1+e*np.cos(theta))
     return r
 
 
 def radius_from_dtheta(theta=[], r0=[], v0=[], mu=mu):
+    '''
+    Given a change in theta from the apse lane(perigee), the initial vector, and the velocity vector, calculate the new radial position
+    '''
+
     h = np.linalg.norm(np.cross(r0,v0))
     r1 = np.linalg.norm(r0)
     vr0 = np.dot(r0, v0/r1)
@@ -42,23 +46,34 @@ def Period(apogee,perigee,mu=mu):
 
 
 def to_radian(deg):
+    '''
+    Convert degrees to radians
+    '''
     r = deg * np.pi/180
     return r
 
 
 def to_degrees(rad):
+    '''
+    Convert radians to degrees
+    '''    
     d = rad * 180/np.pi
     return d
 
 
 def get_eccentricity(h=[], r0=[], theta=[], mu=mu):
+    '''
+    Calculate eccentricity given h, radius vector, and theta
+    Earth is the default value for gravitational constant.
+    '''
     e = (h**2 / mu - r0)/ (r0*np.cos(theta))
     return e
 
 
 def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
     '''
-    Calculate the Lagrange coefficients given change in theta, radius, initial radius, angular momentum, and gravitational constant
+    Calculate the Lagrange coefficients given change in theta, radius, initial radius, and angular momentum.
+    Earth is the default value for gravitational constant
     '''
     def lagrange_f(delta_theta=[], r=[], h=[], mu=mu):
         f = 1- (r*mu)/h**2 * (1-np.cos(delta_theta))
@@ -76,21 +91,27 @@ def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
         gdot = 1 - (mu*r0)/h**2 * (1-np.cos(delta_theta))
         return gdot
     
-    f = lagrange_f(delta_theta, r, h)
-    g = lagrange_g(delta_theta, r, r0, h)
-    fdot = lagrange_fdot(delta_theta, r, r0, h)
-    gdot = lagrange_gdot(delta_theta, r0, h)
+    f = lagrange_f(delta_theta, r, h, mu)
+    g = lagrange_g(delta_theta, r, r0, h, mu)
+    fdot = lagrange_fdot(delta_theta, r, r0, h, mu)
+    gdot = lagrange_gdot(delta_theta, r0, h, mu)
     return f,g,fdot,gdot
 
 
-def esc_velocity(r=[], mu=mu):
+def esc_velocity(r0=[], mu=mu):
+    '''
+    Determine the escape velocty for a body given a radius vector
+    Earth is the default value for gravitational constant
+    '''
+    r = np.linalg.norm(r0)
     v_esc = (2*mu / r)**.5
     return v_esc
 
 
 def chobotov_approx(r0=[], dt=[], mu=mu):
     '''
-    Chobotov approximation for the universal variable approach. First guess at x0
+    Given a radius vector and change in time(seconds), returns a Chobotov approximation for the universal variable approach. Used to as a first guess for iteration.
+    Earth is the default value for gravitational constant
     '''
     r = np.linalg.norm(r0)
     x0 = (mu**.5)/np.linalg.norm(r) * dt
@@ -98,16 +119,27 @@ def chobotov_approx(r0=[], dt=[], mu=mu):
 
 
 def stumpf_c(z=[]):
+    '''
+    Stumpf C function for the universal variable approach.
+    '''
     c = (np.cosh((-z)**.5) -1) / -z
     return c
 
 
 def stumpf_s(z=[]):
+    '''
+    Stumpf C function for the universal variable approach.
+    '''
     s = (np.sinh((-z)**.5) - (-z)**.5) / ((-z)**.5)**3
     return np.abs(s)
 
 
 def universal_parameters(r0=[], v0=[], mu=mu):
+    '''
+    Given a radius vector and a velocity vector, returns the alpha value, a value, eccentricity, angular momentum, and current true anomaly     
+    Earth is the default value for gravitational constant
+    '''
+
     r = np.linalg.norm(r0)
     v = np.linalg.norm(v0)
     alpha = 2/r - (v**2)/mu
@@ -118,16 +150,20 @@ def universal_parameters(r0=[], v0=[], mu=mu):
     return alpha, a, e, h, theta
 
 
-def universal_variable(r0=[], v0=[], alpha=[], dt=[], mu=mu):
+def universal_anomaly(r0=[], v0=[], alpha=[], dt=[], mu=mu):
     '''
-
+    Given a radius vector, velocity vector, , alpha, and change in time, calculate the universal anomaly theta. 
+    Starts with a Chobotov approximation followed by an iterative calculation for the universal anomaly. Works for elliptic and hyperbolic orbits.
+    Earth is the default value for gravitational constant
     '''
+    x0 = chobotov_approx(r0, dt, mu)
     
-    #get the first approximation
-    x0 = chobotov_approx(r0, dt)
-    
-    #define the function to be solved
     def zero(x, r0=[], v0=[], alpha=[], dt=[], mu=mu):
+        '''
+        Equation to solve for the mean hyperbolic anomaly
+        Earth is the default value for gravitational constant
+
+        '''
         r = np.linalg.norm(r0)
         vr0 = np.dot(r0,v0)/r
         z = alpha*x**2
@@ -138,13 +174,17 @@ def universal_variable(r0=[], v0=[], alpha=[], dt=[], mu=mu):
         t4 = mu**.5 * dt
         return (t1+t2+t3 - t4)
     
-    #iterate for  the solution
-    sol = fsolve(zero, args=(r0, v0, alpha, dt), x0=x0)
-    x = sol[0]
-    return x
+    #use built-in scipy solver to converge towards solution
+    sol = fsolve(zero, args=(r0, v0, alpha, dt, mu), x0=x0)
+    theta = sol[0]
+    return theta
 
 
 def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
+    '''
+    Given a universal anomaly, initial radius and velocity vector, alpha, and change in time, determine the new radius and position vector by calculating the universal lagrangian constants
+    Earth is the default value for gravitational constant
+    '''
     z = alpha*x**2
     r = np.linalg.norm(r0)
     #v = np.linalg.norm(v0)
@@ -162,10 +202,14 @@ def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
 
 def hyperbolic_anomaly(r0=[], v0=[], e=[] , dt=[], mu=mu):
     '''
-
+    Given initial radius and velocity vector, eccentricity, and change in time, calculate the hyperbolic anomaly theta
+    Earth is the default value for gravitational constant
     '''
     #create the function to solve
     def zero(F, r0=[], v0=[], e=[] , dt=[], mu=mu):
+        '''
+        Equation setting two different definitions of the hyperbolic anomaly equal to each other to solve for F
+        '''
         h = np.linalg.norm(np.cross(r0,v0))
         r = np.linalg.norm(r0)
         a = r / (1-e)
@@ -173,19 +217,18 @@ def hyperbolic_anomaly(r0=[], v0=[], e=[] , dt=[], mu=mu):
         Mh = (mu/(-a**3))**.5 * dt
         return Mh - (e*np.sinh(F) -F)
     
-    #and get the first guess
-    x0 = zero(0,r0,v0,e,dt)
+    #first guess for anomaly
+    F0 = zero(0,r0,v0,e,dt)
 
-    #solve hyperbolic anomaly for F
-    sol = fsolve(zero, args=(r0,v0,e,dt), x0=x0)
+    #use built in scipy fsolve to iterate for F
+    sol = fsolve(zero, args=(r0,v0,e,dt, mu), x0=F0)
     F = sol[0]
-    #get anomaly
     theta = 2*np.arctan( ((e+1) / (e-1))**.5 * np.tanh(F/2))
     return theta
 
 
+#TODO: Add identical function for calculating elliptic anomaly
 #TODO: maybe change some of this later.
-#Stuff i may change later
 def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     """
     Make a three dimensional plot of the orbit trajectory given angular momentum h, eccentricity e, inclination phi in degrees, gravitational parameter mu, and planet radius
