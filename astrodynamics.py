@@ -118,16 +118,30 @@ def universal_parameters(r0=[], v0=[], mu=mu):
     return alpha, a, e, h, theta
 
 
-def universal_variable(x, r0=[], v0=[], alpha=[], dt=[], mu=mu):
-    r = np.linalg.norm(r0)
-    vr0 = np.dot(r0,v0)/r
-    z = alpha*x**2
+def universal_variable(r0=[], v0=[], alpha=[], dt=[], mu=mu):
+    '''
+
+    '''
     
-    t1 = r*vr0 /(mu**.5) * x**2 * stumpf_c(z)
-    t2 = (1-alpha*r)*x**3 * stumpf_s(z)
-    t3 = r*x
-    t4 = mu**.5 * dt
-    return (t1+t2+t3 - t4)
+    #get the first approximation
+    x0 = chobotov_approx(r0, dt)
+    
+    #define the function to be solved
+    def zero(x, r0=[], v0=[], alpha=[], dt=[], mu=mu):
+        r = np.linalg.norm(r0)
+        vr0 = np.dot(r0,v0)/r
+        z = alpha*x**2
+    
+        t1 = r*vr0 /(mu**.5) * x**2 * stumpf_c(z)
+        t2 = (1-alpha*r)*x**3 * stumpf_s(z)
+        t3 = r*x
+        t4 = mu**.5 * dt
+        return (t1+t2+t3 - t4)
+    
+    #iterate for  the solution
+    sol = fsolve(zero, args=(r0, v0, alpha, dt), x0=x0)
+    x = sol[0]
+    return x
 
 
 def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
@@ -146,13 +160,28 @@ def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
     return r_new, v_new
 
 
-def hyperbolic_anomaly(F, r0=[], v0=[], e=[] , dt=[], mu=mu):
-    h = np.linalg.norm(np.cross(r0,v0))
-    r = np.linalg.norm(r0)
-    a = r / (1-e)
+def hyperbolic_anomaly(r0=[], v0=[], e=[] , dt=[], mu=mu):
+    '''
 
-    Mh = (mu/(-a**3))**.5 * dt
-    return Mh - (e*np.sinh(F) -F)
+    '''
+    #create the function to solve
+    def zero(F, r0=[], v0=[], e=[] , dt=[], mu=mu):
+        h = np.linalg.norm(np.cross(r0,v0))
+        r = np.linalg.norm(r0)
+        a = r / (1-e)
+
+        Mh = (mu/(-a**3))**.5 * dt
+        return Mh - (e*np.sinh(F) -F)
+    
+    #and get the first guess
+    x0 = zero(0,r0,v0,e,dt)
+
+    #solve hyperbolic anomaly for F
+    sol = fsolve(zero, args=(r0,v0,e,dt), x0=x0)
+    F = sol[0]
+    #get anomaly
+    theta = 2*np.arctan( ((e+1) / (e-1))**.5 * np.tanh(F/2))
+    return theta
 
 
 #TODO: maybe change some of this later.
