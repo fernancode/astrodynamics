@@ -37,8 +37,8 @@ print('Anomaly at max flight angle :', ad.to_degrees(thetas[max_angle]))
 print('\n')
 
 ###################problem 3###################################
-r0 = np.array([12300, 8000])
-v0 = np.array([-1.7, 7.0])
+r0 = np.array((12300, 8000))
+v0 = np.array((-1.7, 7.0))
 alpha,a,e,h,theta = ad.universal_parameters(r0=r0, v0=v0)
 theta = ad.to_radian(73)
 r1, r2 = ad.radius_from_dtheta(theta=theta, r0=r0, v0=v0)
@@ -54,8 +54,8 @@ print('\n')
 
 ################################Problem 4#########################################
 
-r0 = np.array([6500,0,0])
-v0 = np.array([0, 1.2 * ad.esc_velocity(r0),0])
+r0 = np.array((6500,0,0))
+v0 = np.array((0, 1.2 * ad.esc_velocity(r0),0))
 dt = 18 * 60**2 #hours to seconds
 alpha, a, e, h, theta = ad.universal_parameters(r0=r0, v0=v0)
 theta = ad.hyperbolic_anomaly(r0,v0,e,dt)
@@ -70,8 +70,8 @@ print('\n')
 
 
 ###############################Problem 5##################################################
-r0 = ad.np.array([10000,6000,800])
-v0 = ad.np.array([-2.0, 8.0, 3])
+r0 = ad.np.array((10000,6000,800))
+v0 = ad.np.array((-2.0, 8.0, 3))
 dt = 20*60
 
 alpha, a, e, h, theta = ad.universal_parameters(r0=r0, v0=v0)
@@ -83,7 +83,8 @@ print(v_new)
 
 
 ##############################Problem 6####################################################
-r0 = np.array([4500, 5500, 3000])
-v0 = np.array([-7, .96, 5.0])
+r0 = np.array((4500, 5500, 3000))
+v0 = np.array((-7, .96, 5.0))
 
-
+sol = ad.numerical_solve(r0=r0, v0=v0, dt=100000, plot=True)
+#loop through sol.y's and get magnitude to search for closest approach

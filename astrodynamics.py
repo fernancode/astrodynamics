@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.optimize import root_scalar
 from scipy.optimize import fsolve
+from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-#find an ode45 python script
 
 '''
 numpy vectors recap
@@ -11,7 +11,19 @@ numpy vectors recap
  4 5 6] is np.array([1,2,3],[4,5,6])
 '''
 pi = np.pi
-mu = 398600 #km^3/s^2
+
+mu_sun = 1.3271244e20 * 1e-9
+mu_mercury = 2.2032e13 * 1e-9
+mu_venus = 3.24859e14 * 1e-9
+mu = 3.986004418e14 * 1e-9 #km^3/s^2
+mu_mars = 4.282837e13 * 1e-9
+mu_jupiter = 1.26686534e17 * 1e-9
+mu_saturn = 3.7931187e16 * 1e-9
+mu_uranus = 5.793939e15 * 1e-9
+mu_neptune = 6.836529e15 * 1e-9
+mu_pluto = 8.71e11 * 1e-9
+
+
 gc = 6.674e-11 #m^3 / kg s^2
 
 def orbit_eq(h=[], e=[], theta=[], mu=mu):
@@ -226,6 +238,52 @@ def hyperbolic_anomaly(r0=[], v0=[], e=[] , dt=[], mu=mu):
     theta = 2*np.arctan( ((e+1) / (e-1))**.5 * np.tanh(F/2))
     return theta
 
+#3def elliptic_anomaly(r0=[], v0=[], e=[], dt=[], mu=mu):
+
+#    return theta
+
+
+def numerical_solve(r0=[], v0=[], dt=[], plot=False, mu=mu, planet_radius=6378):
+    '''
+    Determine position of satellite solving the equation of motion using numerical methods
+    '''
+    
+    def brute_force(t, z, mu=mu):
+        '''
+        Equation of motion 1st and 2nd derivatives for numerical solver
+        '''
+        r = (z[0]**2 + z[1]**2 + z[2]**2)**.5
+        dzdt = np.zeros(6)
+        dzdt[0] = z[3]
+        dzdt[1] = z[4]
+        dzdt[2] = z[5]
+        dzdt[3] =  -mu / r**3 * z[0] 
+        dzdt[4] =  -mu / r**3 * z[1] 
+        dzdt[5] =  -mu / r**3 * z[2] 
+        return dzdt
+
+    sol = solve_ivp(brute_force, [0, dt], np.hstack((r0 , v0)), method='RK45', rtol =1e-7)
+
+    if plot == True:
+        plot_given_pts(sol)
+    return sol
+    
+
+def plot_given_pts(sol=[], planet_radius = 6378):
+    '''
+    Plot the orbit given the numerical solution from numerical solve
+    '''
+    plt.style.use('dark_background')
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')    
+    
+    ax.plot(sol.y[0], sol.y[1], sol.y[2], label = "orbit" , color = 'r')
+    equal_axes(sol.y[0],sol.y[1],sol.y[2],ax)
+    make_planet(planet_radius,ax)
+    plt.xlabel('kilometers')       
+    ax.legend()
+    plt.show()
+
 
 #TODO: Add identical function for calculating elliptic anomaly
 #TODO: maybe change some of this later.
@@ -238,7 +296,6 @@ def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    #make_planet(planet_radius,ax)
     x,y,z = generate_orbit(h,e,mu)
     x_i,y_i,z_i = inclination(x,y,z,(-np.pi/180 * phi))
     equal_axes(x_i,y_i,z_i,ax)
@@ -251,12 +308,14 @@ def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
 
 
 def make_planet(planet_radius,ax):
+    planet_radius = 6378
+    
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
     x = planet_radius * np.outer(np.cos(u), np.sin(v))
     y = planet_radius * np.outer(np.sin(u), np.sin(v))
     z = planet_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-    ax.plot_surface(x, y, z, color='b',alpha = .5)
+    ax.plot_surface(x, y, z, color='b',alpha = .75)
 
 
 def generate_orbit(h,e,mu):
