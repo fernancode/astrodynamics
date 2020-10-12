@@ -5,13 +5,12 @@ radius_earth = 6378
 apogee = 6000 + radius_earth
 perigee = 740 + radius_earth
 T = astro.Period(apogee,perigee) / 60**2
-e = (apogee - perigee) / (apogee + apogee)
+e = (apogee - perigee) / (apogee + perigee)
 p = (apogee + perigee)/2 * (1-e)
 h = (p * astro.mu) **.5
 v_perigee = ((perigee*(1+e)*astro.mu)**.5)/perigee
 v_apogee =  ((apogee*(1-e)*astro.mu)**.5)/apogee
-a = (apogee + perigee)  /2
- 
+a = (apogee + perigee)  /2 
 thetas = astro.np.linspace(0,2*astro.np.pi,10000)
 gammas=[]
 for theta in thetas:
@@ -23,14 +22,12 @@ for theta in thetas:
 
     gamma = (astro.np.arctan(tan_gamma))
     gammas.append(gamma)
-    
 max_angle = gammas.index(max(gammas))
 
 print('Problem 2).')
 print('Period is ', T, 'hours.')
 print('Velocity at perigee is ', v_perigee)
 print('Velocity at apogee is ', v_apogee)
-
 print('Max flight angle :', astro.to_degrees(max(gammas)))
 print('Anomaly at max flight angle :', astro.to_degrees(thetas[max_angle]))
 print('\n')
