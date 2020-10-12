@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import root_scalar
+from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 #find an ode45 python script
@@ -19,6 +20,14 @@ def orbit_eq(angular_momentum, eccentricity, theta, mu=398600):
     """
     r = (angular_momentum**2/mu)/(1+eccentricity*np.cos(theta))
     return r
+
+
+def radius_from_dtheta(theta=[], r0=[], v0=[], mu=mu):
+    h = np.linalg.norm(np.cross(r0,v0))
+    r1 = np.linalg.norm(r0)
+    vr0 = np.dot(r0, v0/r1)
+    r2 = (h**2)/mu * 1/(1 + (h**2 / (mu*r1)-1)*np.cos(theta) - (h*vr0)/mu * np.sin(theta))
+    return r1, r2
 
 
 def Period(apogee,perigee,mu=mu):
@@ -103,7 +112,10 @@ def universal_parameters(r0=[], v0=[], mu=mu):
     v = np.linalg.norm(v0)
     alpha = 2/r - (v**2)/mu
     a = 1/alpha
-    return alpha, a
+    h = np.linalg.norm(np.cross(r0,v0))
+    theta = np.arctan(r0[1]/r0[0])
+    e = (np.linalg.norm(h)**2 / mu - r) / (np.linalg.norm(r0) * np.cos(theta))
+    return alpha, a, e, h, theta
 
 
 def universal_variable(x, r0=[], v0=[], alpha=[], dt=[], mu=mu):
@@ -134,11 +146,13 @@ def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
     return r_new, v_new
 
 
+def hyperbolic_anomaly(F, r0=[], v0=[], e=[] , dt=[], mu=mu):
+    h = np.linalg.norm(np.cross(r0,v0))
+    r = np.linalg.norm(r0)
+    a = r / (1-e)
 
-
-
-
-
+    Mh = (mu/(-a**3))**.5 * dt
+    return Mh - (e*np.sinh(F) -F)
 
 
 #TODO: maybe change some of this later.
@@ -163,6 +177,7 @@ def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     ax.legend()
     plt.show()
 
+
 def make_planet(planet_radius,ax):
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
@@ -170,6 +185,7 @@ def make_planet(planet_radius,ax):
     y = planet_radius * np.outer(np.sin(u), np.sin(v))
     z = planet_radius * np.outer(np.ones(np.size(u)), np.cos(v))
     ax.plot_surface(x, y, z, color='b',alpha = .5)
+
 
 def generate_orbit(h,e,mu):
     x = []
@@ -185,6 +201,7 @@ def generate_orbit(h,e,mu):
     coordinate = np.array([[x],[y],[z]])
     return x,y,z
 
+
 def equal_axes(x,y,z,ax):
     X = np.array(x)
     Y = np.array(y)
@@ -199,6 +216,7 @@ def equal_axes(x,y,z,ax):
     for xb, yb, zb in zip(Xb, Yb, Zb):
         ax.plot([xb], [yb], [zb], 'w')
     plt.grid()
+
 
 def inclination(x,y,z,phi):
     x_i = []
