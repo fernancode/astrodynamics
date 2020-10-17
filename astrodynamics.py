@@ -82,6 +82,24 @@ def get_eccentricity(h=[], r0=[], theta=[], mu=mu):
     return e
 
 
+def max_flight_angle(h,e,mu=mu):
+    thetas = np.linspace(0,2*np.pi,10000)
+    gammas=[]
+    for theta in thetas:
+        r =  h**2 / mu / (1 + e*np.cos(theta))
+
+        sin_gamma = (mu / h * (e*np.sin(theta)))
+        cos_gamma = (mu / h * (1+e*np.cos(theta)))
+        tan_gamma = sin_gamma/cos_gamma
+
+        gamma = (np.arctan(tan_gamma))
+        gammas.append(gamma)
+    max_angle_index = gammas.index(max(gammas))
+    max_angle = gammas[max_angle_index]
+    max_angle_anomaly = thetas[max_angle_index]
+    return max_angle, max_angle_anomaly
+
+
 def lagrange(delta_theta=[], r=[], r0=[], h=[], mu=mu):
     '''
     Calculate the Lagrange coefficients given change in theta, radius, initial radius, and angular momentum.
