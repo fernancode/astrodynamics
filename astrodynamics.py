@@ -199,7 +199,6 @@ def universal_lagrange(x=[], r0=[], v0=[], alpha=[], dt=[], mu=mu):
     '''
     z = alpha*x**2
     r = np.linalg.norm(r0)
-    #v = np.linalg.norm(v0)
     z = alpha*x**2
 
     f = 1 - x**2/r * stumpf_c(z)
@@ -286,6 +285,32 @@ def plot_given_pts(sol=[], planet_radius = 6378):
 
 
 #TODO: Add identical function for calculating elliptic anomaly
+
+
+def get_state_vectors(r0,v0,mu=mu):
+    h_vec = np.cross(r0,v0)
+    h = np.linalg.norm(h_vec)
+    
+    i = to_degrees(np.arccos(h_vec[2]/h))
+    
+    K_vec = np.array([0,0,1])
+    N_vec = np.cross(K_vec, h_vec)
+    N = np.linalg.norm(N_vec)
+    right_asc = to_degrees(np.arccos(N_vec[0]/N))
+
+    r = np.linalg.norm(r0)
+    v = np.linalg.norm(v0)
+    vr = np.dot(r0,v0)/r
+    e_vec = 1/mu * ( (v**2 - mu/r)*r0 - r*vr*v0 )
+    e = np.linalg.norm(e_vec)
+
+    omega = 360 - to_degrees( np.dot(N_vec,e_vec) / (N * e) )
+
+    theta = to_degrees(np.arccos( np.dot(e_vec,r0) / (e*r) ))
+    return h, i, right_asc, e, omega, theta
+
+
+
 #TODO: maybe change some of this later.
 def plot_orbit(h,e,phi,mu=398600,planet_radius=6371):
     """
