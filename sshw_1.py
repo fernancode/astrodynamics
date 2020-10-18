@@ -2,7 +2,7 @@ import astrodynamics as ad
 import numpy as np
 
 ###########################problem 2################################
-radius_earth = 6378
+radius_earth = 6371
 apogee = 6000 + radius_earth
 perigee = 740 + radius_earth
 T = ad.Period(apogee,perigee) / 60**2
@@ -11,29 +11,16 @@ p = (apogee + perigee)/2 * (1-e)
 h = (p * ad.mu) **.5
 v_perigee = ((perigee*(1+e)*ad.mu)**.5)/perigee
 v_apogee =  ((apogee*(1-e)*ad.mu)**.5)/apogee
-
-#TODO: is there a more streamlined way to get the above stuff?
-#TODO: encapsulate below into a fucntion
-a = (apogee + perigee)  /2 
-thetas = np.linspace(0,2*np.pi,10000)
-gammas=[]
-for theta in thetas:
-    r =  h**2 / ad.mu / (1 + e*np.cos(theta))
-
-    sin_gamma = (ad.mu / h * (e*np.sin(theta)))
-    cos_gamma = (ad.mu / h * (1+e*np.cos(theta)))
-    tan_gamma = sin_gamma/cos_gamma
-
-    gamma = (np.arctan(tan_gamma))
-    gammas.append(gamma)
-max_angle = gammas.index(max(gammas))
+max_angle, max_angle_anomaly =  ad.max_flight_angle(h,e)
+max_angle = ad.to_degrees(max_angle)
+max_angle_anomaly = ad.to_degrees(max_angle_anomaly)
 
 print('Problem 2).')
-print('Period is ', T, 'hours.')
-print('Velocity at perigee is ', v_perigee)
-print('Velocity at apogee is ', v_apogee)
-print('Max flight angle :', ad.to_degrees(max(gammas)))
-print('Anomaly at max flight angle :', ad.to_degrees(thetas[max_angle]))
+print('Period is %0.2f hours.' % T)
+print('Velocity at perigee is %0.3f' % v_perigee)
+print('Velocity at apogee is %0.3f' % v_apogee)
+print('Max flight angle : %0.2f' % max_angle) 
+print('Anomaly at max flight angle : %0.2f' % max_angle_anomaly )
 print('\n')
 
 ###################problem 3###################################
@@ -47,9 +34,9 @@ r_new = f*r0 + g*v0
 v_new = fdot*r0 + gdot*v0
 
 print('Problem 3). ')
-print(e)
-print('New radial vector is ', r_new)
-print('New veloity vector is ', v_new)
+print('e: %0.3f ' % e)
+print('New radial vector is [ %0.2f'%r_new[0],', %0.2f]'%r_new[1])
+print('New veloity vector is [ %0.2f'%v_new[0],', %0.2f]'%v_new[1])
 print('\n')
 
 ################################Problem 4#########################################
@@ -63,8 +50,8 @@ theta_deg = ad.to_degrees(theta)
 r = ad.orbit_eq(h, e, theta)
 
 print('Problem 4).')
-print(theta_deg)
-print(r)
+print('True Anomaly: %0.2f ' % theta_deg)
+print('Distance from earth: %0.0f km' % r)
 print('\n')
 
 
@@ -78,9 +65,8 @@ alpha, a, e, h, theta = ad.universal_parameters(r0=r0, v0=v0)
 x = ad.universal_anomaly(r0=r0, v0=v0, alpha=alpha, dt=dt)
 r_new, v_new = ad.universal_lagrange(x, r0, v0, alpha, dt)
 print('Problem 5). ')
-print(r_new)
-print(v_new)
-
+print('New radial vector is [ %0.2f'%r_new[0],', %0.2f]'%r_new[1])
+print('New veloity vector is [ %0.2f'%v_new[0],', %0.2f]'%v_new[1])
 
 ##############################Problem 6####################################################
 r0 = np.array((4500, 5500, 3000))
