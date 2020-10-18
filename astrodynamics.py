@@ -305,7 +305,7 @@ def plot_given_pts(sol=[], planet_radius = 6378):
 #TODO: Add identical function for calculating elliptic anomaly
 
 
-def get_state_vectors(r0,v0,mu=mu):
+def orbital_elements(r0,v0,mu=mu):
     h_vec = np.cross(r0,v0)
     h = np.linalg.norm(h_vec)
     
@@ -327,6 +327,21 @@ def get_state_vectors(r0,v0,mu=mu):
     theta = to_degrees(np.arccos( np.dot(e_vec,r0) / (e*r) ))
     return h, i, right_asc, e, omega, theta
 
+
+def state_vectors(ra=[], i=[], omega=[], mu=mu):
+    ra = to_radian(ra)
+    i = to_radian(i)
+    omega = to_radian(omega)    
+    
+    R3_ra = np.array(([np.cos(ra), np.sin(ra), 0], [-np.sin(ra), np.cos(ra), 0], [0,0,1]))
+    R1_i = np.array(([1,0,0], [0,np.cos(i), np.sin(i)], [0,-np.sin(i), np.cos(i)]))
+    R3_omega = np.array(([np.cos(omega), np.sin(omega), 0], [-np.sin(omega), np.cos(omega), 0], [0,0,1]))
+    Q = R3_ra @ R1_i @ R3_omega
+
+    r_eq =[]
+    v_eq =[]
+    R_eq = Q*r_eq 
+    V_eq = 
 
 
 #TODO: maybe change some of this later.
